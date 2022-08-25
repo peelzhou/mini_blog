@@ -1,5 +1,8 @@
-import { useState } from 'react';
+import { ChangeEvent, useState } from 'react';
+import CountDown from 'components/CountDown';
 import styles from './index.module.scss';
+import { message } from 'antd';
+import request from 'service/fetch';
 
 interface IProps {
   isShow: boolean;
@@ -8,21 +11,46 @@ interface IProps {
 
 const Login = (props: IProps) => {
   const { isShow = false } = props;
+  const [isShowVerifyCode, setIsShowVerifyCode] = useState(false);
+
   const [form, setForm] = useState({
     phone: '',
     verify: '',
   });
 
   const handleClose = () => {};
-  const handleVerifyCode = () => {};
+  const handleVerifyCode = () => {
+    // setIsShowVerifyCode(true);
+    if (!form?.phone) {
+      message.warning('Please enter your phone number.');
+      return;
+    }
+
+    request
+      .post('/api/user/sendVerifyCode', {
+        to: form?.phone,
+        templateId: 1,
+      })
+      .then((res: any) => {
+        if (res?.code === 0) {
+          setIsShowVerifyCode(true);
+        } else {
+          message.error(res?.msg || 'Unknown Error');
+        }
+      });
+  };
+
   const handleLogin = () => {};
   const handleOAuthGitHub = () => {};
-  const handleFormChange = (e: HTMLInputElement) => {
-    const { name, value } = e?.target;
+  const handleFormChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     setForm({
       ...form,
       [name]: value,
     });
+  };
+  const handleCountDownEnd = () => {
+    setIsShowVerifyCode(false);
   };
 
   return isShow ? (
@@ -50,7 +78,11 @@ const Login = (props: IProps) => {
             onChange={handleFormChange}
           />
           <span className={styles.verifyCode} onClick={handleVerifyCode}>
-            Get code
+            {isShowVerifyCode ? (
+              <CountDown time={10} onEnd={handleCountDownEnd} />
+            ) : (
+              'Get code'
+            )}
           </span>
         </div>
         <div className={styles.loginBtn} onClick={handleLogin}>
