@@ -10,7 +10,7 @@ interface IProps {
 }
 
 const Login = (props: IProps) => {
-  const { isShow = false } = props;
+  const { isShow, onClose } = props;
   const [isShowVerifyCode, setIsShowVerifyCode] = useState(false);
 
   const [form, setForm] = useState({
@@ -18,8 +18,10 @@ const Login = (props: IProps) => {
     verify: '',
   });
 
-  const handleClose = () => {};
-  const handleVerifyCode = () => {
+  const handleClose = () => {
+    onClose && onClose();
+  };
+  const handleGetVerifyCode = () => {
     // setIsShowVerifyCode(true);
     if (!form?.phone) {
       message.warning('Please enter your phone number.');
@@ -40,7 +42,20 @@ const Login = (props: IProps) => {
       });
   };
 
-  const handleLogin = () => {};
+  const handleLogin = () => {
+    request
+      .post('/api/user/login', {
+        ...form,
+      })
+      .then((res: any) => {
+        if (res?.code === 0) {
+          //Successfully login
+          onClose && onClose();
+        } else {
+          message.error(res?.msg || 'Unknown error');
+        }
+      });
+  };
   const handleOAuthGitHub = () => {};
   const handleFormChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -77,7 +92,7 @@ const Login = (props: IProps) => {
             value={form.verify}
             onChange={handleFormChange}
           />
-          <span className={styles.verifyCode} onClick={handleVerifyCode}>
+          <span className={styles.verifyCode} onClick={handleGetVerifyCode}>
             {isShowVerifyCode ? (
               <CountDown time={10} onEnd={handleCountDownEnd} />
             ) : (

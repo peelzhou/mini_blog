@@ -39,7 +39,7 @@ const Navbar: NextPage = () => {
           Login
         </Button>
       </section>
-      <Login isShow={isShowLogin} onClose={handleClose} />
+      <Login isShow={isShowLogin} onClose={handleClose} /> 
     </div>
   );
 };
