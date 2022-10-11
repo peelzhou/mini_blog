@@ -8,5 +8,5 @@ async function login(req: NextApiRequest, res: NextApiResponse) {
   const { phone = '', verify = '' } = req.body;
   console.log(phone, verify);
 
-  res?.status(200).json({ phone, verify });
+  res?.status(200).json({ phone, verify, code: 0 });
 }
