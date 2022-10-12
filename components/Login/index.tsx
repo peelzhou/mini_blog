@@ -46,6 +46,7 @@ const Login = (props: IProps) => {
     request
       .post('/api/user/login', {
         ...form,
+        identity_type: 'phone',
       })
       .then((res: any) => {
         if (res?.code === 0) {
