@@ -1,8 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { withIronSessionApiRoute } from 'iron-session/next';
+import { Cookie } from 'next-cookie';
 import { ironOptions } from 'config/index';
 import { prepareConnection } from 'db/index';
 import { ISession } from 'pages/api/index';
+import { setCookie } from 'utils/index';
 import { User, UserAuth } from 'db/entity';
 
 export default withIronSessionApiRoute(login, ironOptions);
@@ -10,10 +12,9 @@ export default withIronSessionApiRoute(login, ironOptions);
 async function login(req: NextApiRequest, res: NextApiResponse) {
   const session: ISession = req.session;
   const { phone = '', verify = '', identity_type = 'phone' } = req.body;
+  const cookies = Cookie.fromApiRoute(req, res);
   const db = await prepareConnection();
   const userAuthRepo = db.getRepository(UserAuth);
-  const userRepo = db.getRepository(User);
-  const users = await userRepo.find();
 
   if (String(session.verifyCode) === String(verify)) {
     const userAuth = await userAuthRepo.findOneBy({
@@ -23,6 +24,8 @@ async function login(req: NextApiRequest, res: NextApiResponse) {
 
     if (userAuth) {
       //Existed user
+      console.log(111111);
+      console.log(userAuth);
       const user = userAuth.user;
       const { id, nickname, avatar } = user;
       session.userId = id;
@@ -30,6 +33,8 @@ async function login(req: NextApiRequest, res: NextApiResponse) {
       session.avatar = avatar;
 
       await session.save();
+
+      setCookie(cookies, { id, nickname, avatar });
     } else {
       //New user
       const user = new User();
@@ -53,6 +58,8 @@ async function login(req: NextApiRequest, res: NextApiResponse) {
       session.nickname = nickname;
       session.avatar = avatar;
 
+      setCookie(cookies, { id, nickname, avatar });
+
       await session.save();
       res?.status(200).json({
         code: 0,
@@ -70,5 +77,4 @@ async function login(req: NextApiRequest, res: NextApiResponse) {
       msg: 'Wrong code',
     });
   }
-  console.log(users);
 }
